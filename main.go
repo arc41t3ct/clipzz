@@ -56,7 +56,8 @@ func handleConnection(conn net.Conn) {
 
 func main() {
 	if len(os.Args) != 4 {
-		fmt.Println("Usage: program <remote IP> <remote port> <local port>")
+		fmt.Printf("%s allows you to sync the last item of the clipboard between two machines.\n", os.Args[0])
+		fmt.Printf("Usage: %s <remote IP> <remote port> <local port>\n", os.Args[0])
 		return
 	}
 
@@ -111,4 +112,3 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 }
-
