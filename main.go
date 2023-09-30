@@ -14,6 +14,9 @@ import (
 	"time"
 )
 
+const maxRetries = 100
+const retryDelay = 2 * time.Second
+
 func getClipboardHash() (string, error) {
 	content, err := clipboard.ReadAll()
 	if err != nil {
@@ -30,7 +33,15 @@ func sendClipboardData(address string) error {
 		return err
 	}
 
-	conn, err := net.Dial("tcp", address)
+	var conn net.Conn
+	for i := 0; i < maxRetries; i++ {
+		conn, err = net.Dial("tcp", address)
+		if err == nil || err != nil && i == maxRetries-1 {
+			break
+		}
+		time.Sleep(retryDelay)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -56,7 +67,7 @@ func handleConnection(conn net.Conn) {
 
 func main() {
 	if len(os.Args) != 4 {
-		fmt.Printf("%s allows you to sync the last item of the clipboard between two machines.\n", os.Args[0])
+		fmt.Printf("%s allows you to sync the clipboard between two computers\n", os.Args[0])
 		fmt.Printf("Usage: %s <remote IP> <remote port> <local port>\n", os.Args[0])
 		return
 	}
@@ -87,9 +98,8 @@ func main() {
 
 	go func() {
 		<-sig
-		fmt.Println("Received OS shutdown signal. Exiting gracefully...")
+		fmt.Println("Received OS shutdown signal. Exiting...")
 		// Cleanup logic if necessary
-		fmt.Println("Graceful shutdown complete.")
 		os.Exit(0)
 	}()
 
@@ -104,7 +114,7 @@ func main() {
 
 		if currentHash != lastHash {
 			if err := sendClipboardData(remoteAddress); err != nil {
-				fmt.Println("Error sending clipboard data:", err)
+				fmt.Println("Failed to send clipboard data after retries:", err)
 			}
 			lastHash = currentHash
 		}
@@ -112,3 +122,4 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 }
+
