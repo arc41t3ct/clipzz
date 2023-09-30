@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const maxRetries = 100
+const maxRetries = 200000000
 const retryDelay = 2 * time.Second
 
 func getClipboardHash() (string, error) {
