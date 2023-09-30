@@ -14,7 +14,6 @@ import (
 	"time"
 )
 
-const maxRetries = 200000000
 const retryDelay = 2 * time.Second
 
 func getClipboardHash() (string, error) {
@@ -34,9 +33,9 @@ func sendClipboardData(address string) error {
 	}
 
 	var conn net.Conn
-	for i := 0; i < maxRetries; i++ {
+	for {
 		conn, err = net.Dial("tcp", address)
-		if err == nil || err != nil && i == maxRetries-1 {
+		if err == nil {
 			break
 		}
 		time.Sleep(retryDelay)
@@ -122,4 +121,3 @@ func main() {
 		time.Sleep(1 * time.Second)
 	}
 }
-
